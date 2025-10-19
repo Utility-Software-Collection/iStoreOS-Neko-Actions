@@ -233,6 +233,12 @@ jobs:
             fi
           done
 
+      - name:  ⬆️ 上傳固件到工作流產物
+        uses: actions/upload-artifact@v4
+        with:
+          name: iStoreOS-Firmware-${{ inputs.openwrt_board }}-${{ inputs.openwrt_kernel }}
+          path: ${{ env.PACKAGED_OUTPUTPATH }}/*.img.gz
+
       - name: 🚀 上传到 Release
         uses: softprops/action-gh-release@v2.2.1
         with:
