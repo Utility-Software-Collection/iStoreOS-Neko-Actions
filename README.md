@@ -5,10 +5,8 @@
 
 > **To All Who Are Frustrated Because Your Initial IP Doesn’t Match the Current Network Environment, Causing Login Failures!!!**
 
-> **😂如果您对当前项目有抵触心理，也欢迎您使用这个项目😂👉👉👉[iStoreOS-Native](https://github.com/Kwonelee/iStoreOS-Native)**
-
 > **使用此仓库必须设置机密token，Actions云编译固件时需要用到，通常在仓库设置里面。机密键名为 `GH_TOKEN`（严禁在仓库可视代码中填写，否则后果自负）**
-
+> **Release 中提供的为 wxy-oect-replaced 固件。如果需要的话请 `复刻` 此仓库**
 # 😅Built-in package plan
 | 插件                     | 状态 | 插件                      | 状态  |
 |:------------------------:|:----:|:------------------------:|:----:|
@@ -60,3 +58,4 @@
 - [istoreos](https://github.com/istoreos/istoreos)
 - [istoreos-builder](https://github.com/wukongdaily/istoreos-builder)
 - [amlogic-s9xxx-openwrt](https://github.com/ophub/amlogic-s9xxx-openwrt)
+- [istoreos-actions](https://github.com/Kwonelee/iStoreOS-Actions)
