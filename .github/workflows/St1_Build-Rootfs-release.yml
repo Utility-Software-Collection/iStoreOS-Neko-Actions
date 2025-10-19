@@ -112,6 +112,12 @@ jobs:
         echo "打印bin目录"
         ls -lah imagebuilder/bin/targets/armsr/armv8/
 
+    - name: ⬆️ 上傳 Rootfs 到工作流產物 (Artifact)
+      uses: actions/upload-artifact@v4
+      with:
+        name: iStoreOS-Rootfs-Base-${{ env.VERSION }}-${{ inputs.network_settings }}
+        path: imagebuilder/bin/targets/armsr/armv8/*generic-rootfs.tar.gz
+
     - name: 🚀 上传到 Release
       uses: softprops/action-gh-release@v2.2.1
       with:
