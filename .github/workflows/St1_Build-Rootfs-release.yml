@@ -26,6 +26,14 @@ on:
         options:
           - 'yes'
           - 'no'
+      include_nikki:
+        description: "是否集成 OpenWrt-nikki (透明代理插件)"
+        required: true
+        default: 'no' 
+        type: choice
+        options:
+          - 'yes'
+          - 'no'
 
 env:
   VERSION: 24.10.3
@@ -96,6 +104,30 @@ jobs:
         echo "打印action目录结构"
         tree -L 1
 
+    - name: ➕ 集成 OpenWrt-nikki 套件庫
+      # 只有當用戶在輸入中選擇 'yes' 時，才執行這個步驟
+      if: ${{ inputs.include_nikki == 'yes' }} 
+      working-directory: ./imagebuilder
+      run: |
+        echo "src-git nikki https://github.com/nikkinikki-org/OpenWrt-nikki.git" >> repositories.conf
+        echo "✅ 已添加 nikki 到 repositories.conf"
+        
+        # 1. 更新並安裝新的套件庫
+        ./scripts/feeds update nikki
+        ./scripts/feeds install -a -p nikki
+        
+        # 2. 透過修改 .config 檔案來「選中」所需的插件
+        echo "CONFIG_PACKAGE_nikki=y" >> .config
+        echo "CONFIG_PACKAGE_luci-app-nikki=y" >> .config
+        echo "CONFIG_PACKAGE_luci-i18n-nikki-zh-cn=y" >> .config
+        
+        # 3. 選中常見必要依賴
+        echo "CONFIG_PACKAGE_ip-full=y" >> .config
+        echo "CONFIG_PACKAGE_curl=y" >> .config
+        echo "CONFIG_PACKAGE_yq=y" >> .config
+
+        echo "✅ Nikki 套件及其核心依賴已選中"
+    
     - name: 🧱 构建iStoreOS-rootfs
       working-directory: ./imagebuilder
       run: |
