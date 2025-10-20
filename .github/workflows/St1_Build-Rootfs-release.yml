@@ -105,23 +105,21 @@ jobs:
         tree -L 1
 
     - name: ➕ 集成 OpenWrt-nikki 套件庫
-      # 只有當用戶在輸入中選擇 'yes' 時，才執行這個步驟
-      if: ${{ inputs.include_nikki == 'yes' }} 
-      working-directory: ./imagebuilder
+      working-directory: ./imagebuilder 
       run: |
+        # 1. 添加並安裝套件庫
         echo "src-git nikki https://github.com/nikkinikki-org/OpenWrt-nikki.git" >> repositories.conf
         echo "✅ 已添加 nikki 到 repositories.conf"
-        
-        # 1. 更新並安裝新的套件庫
+        echo "src-git nikki https://github.com/nikkinikki-org/OpenWrt-nikki.git" > feeds.con
         ./scripts/feeds update nikki
         ./scripts/feeds install -a -p nikki
         
-        # 2. 透過修改 .config 檔案來「選中」所需的插件
+        # 3. 選中核心套件
         echo "CONFIG_PACKAGE_nikki=y" >> .config
         echo "CONFIG_PACKAGE_luci-app-nikki=y" >> .config
         echo "CONFIG_PACKAGE_luci-i18n-nikki-zh-cn=y" >> .config
         
-        # 3. 選中常見必要依賴
+        # 4. 選中常見必要依賴
         echo "CONFIG_PACKAGE_ip-full=y" >> .config
         echo "CONFIG_PACKAGE_curl=y" >> .config
         echo "CONFIG_PACKAGE_yq=y" >> .config
