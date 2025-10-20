@@ -105,26 +105,47 @@ jobs:
         tree -L 1
 
     - name: ➕ 集成 OpenWrt-nikki 套件庫
-      working-directory: ./imagebuilder 
+      if: ${{ inputs.include_nikki == 'yes' }} 
+      working-directory: ./imagebuilder
       run: |
-        # 1. 添加並安裝套件庫
-        echo "src-git nikki https://github.com/nikkinikki-org/OpenWrt-nikki.git" >> repositories.conf
-        echo "✅ 已添加 nikki 到 repositories.conf"
-        echo "src-git nikki https://github.com/nikkinikki-org/OpenWrt-nikki.git" > feeds.con
-        ./scripts/feeds update nikki
-        ./scripts/feeds install -a -p nikki
+        # 設置變數
+        NIKKI_TAG="v1.24.2"
+        # 由於 OECT/RK3566 屬於 ARMv8 (aarch64)，且 iStoreOS 常基於 OpenWrt 23.05+
+        ARCH_OWRT="aarch64_cortex-a53-openwrt-23.05"
+        FILENAME="nikki_${ARCH_OWRT}.tar.gz"
+        DOWNLOAD_URL="https://github.com/nikkinikki-org/OpenWrt-nikki/releases/download/${NIKKI_TAG}/${FILENAME}"
+        PACKAGE_DIR="packages" # ImageBuilder 會在這個目錄尋找 .ipk 文件
+
+        echo "正在從 ${DOWNLOAD_URL} 下載 Nikki 插件包..."
         
-        # 3. 選中核心套件
+        # 1. 下載對應架構的預編譯套件包 (包含所有 .ipk 文件)
+        curl -L ${DOWNLOAD_URL} -o ${FILENAME}
+
+        # 檢查下載是否成功
+        if [ $? -ne 0 ] || [ ! -s "${FILENAME}" ]; then
+          echo "❌ 下載 Nikki 插件包失敗，請檢查 URL 或文件是否為空。"
+          exit 1
+        fi
+
+        # 2. 解壓套件到 ImageBuilder 的 packages 目錄
+        mkdir -p ${PACKAGE_DIR}
+        tar -xzf ${FILENAME} -C ${PACKAGE_DIR}
+        rm ${FILENAME}
+        
+        echo "✅ Nikki 插件包已成功下載並解壓至 ${PACKAGE_DIR}"
+        
+        # 3. 透過修改 .config 檔案來「選中」所需插件
+        # 這些配置項會讓 ImageBuilder 知道要從 packages 目錄中選中它們
         echo "CONFIG_PACKAGE_nikki=y" >> .config
         echo "CONFIG_PACKAGE_luci-app-nikki=y" >> .config
         echo "CONFIG_PACKAGE_luci-i18n-nikki-zh-cn=y" >> .config
         
-        # 4. 選中常見必要依賴
+        # 4. 選中常見必要依賴 (確保基礎套件存在)
         echo "CONFIG_PACKAGE_ip-full=y" >> .config
         echo "CONFIG_PACKAGE_curl=y" >> .config
         echo "CONFIG_PACKAGE_yq=y" >> .config
 
-        echo "✅ Nikki 套件及其核心依賴已選中"
+        echo "✅ Nikki 套件已添加到配置清單中"
     
     - name: 🧱 构建iStoreOS-rootfs
       working-directory: ./imagebuilder
