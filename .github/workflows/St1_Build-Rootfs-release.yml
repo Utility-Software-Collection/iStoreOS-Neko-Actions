@@ -35,6 +35,15 @@ on:
           - 'yes'
           - 'no'
 
+      include_openclash:
+        description: "是否集成 OpenClash 代理插件"
+        required: true
+        default: 'no'
+        type: choice
+        options:
+          - 'yes'
+          - 'no'
+
 env:
   VERSION: 24.10.3
 
