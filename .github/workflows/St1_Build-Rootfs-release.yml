@@ -146,6 +146,46 @@ jobs:
         echo "CONFIG_PACKAGE_yq=y" >> .config
 
         echo "✅ Nikki 套件已添加到配置清單中"
+
+    - name: ➕ 集成 OpenClash 插件
+      # ⚠️ 判斷邏輯：只有在選擇 OpenClash 且沒選 Nikki 時才執行
+      if: ${{ inputs.include_openclash == 'yes' && inputs.include_nikki == 'no' }} 
+      working-directory: ./imagebuilder
+      run: |
+        OPENCLASH_REPO="vernesong/OpenClash"
+        
+        # 1. 查詢最新的 Release Tag (例如 v0.47.010)
+        OPENCLASH_TAG=$(curl -s "https://api.github.com/repos/${OPENCLASH_REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        
+        # 從 Tag 中提取版本號，移除開頭的 'v'
+        VERSION_NUMBER=${OPENCLASH_TAG#v}
+
+        # 2. 構建精確的 IPK 文件名和下載 URL
+        IPK_FILENAME="luci-app-openclash_${VERSION_NUMBER}_all.ipk"
+        DOWNLOAD_URL="https://github.com/vernesong/OpenClash/releases/download/${OPENCLASH_TAG}/${IPK_FILENAME}"
+        
+        echo "最新版本 OpenClash Tag: ${OPENCLASH_TAG}"
+        echo "正在下載 OpenClash IPK: ${DOWNLOAD_URL}"
+        
+        # 3. 下載 IPK 文件
+        curl -L "${DOWNLOAD_URL}" -o "${IPK_FILENAME}"
+
+        # 4. 檢查下載是否成功
+        if [ $? -ne 0 ] || [ ! -s "${IPK_FILENAME}" ]; then
+          echo "❌ OpenClash IPK 下載失敗，請檢查文件名：${IPK_FILENAME} 或 Release URL。"
+          exit 1
+        fi
+
+        # 5. 複製 IPK 到 ImageBuilder 的 packages 目錄
+        cp "${IPK_FILENAME}" ./packages/
+        rm "${IPK_FILENAME}"
+        
+        echo "✅ OpenClash IPK 已成功複製到 packages 目錄"
+        
+        # 6. 選中所需插件到配置
+        echo "CONFIG_PACKAGE_luci-app-openclash=y" >> .config
+        
+        echo "✅ OpenClash 套件已集成"
     
     - name: 🧱 构建iStoreOS-rootfs
       working-directory: ./imagebuilder
